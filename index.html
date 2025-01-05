@@ -1,37 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pathfinders Interactive Map</title>
-    
+
     <!-- Link to Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    
+
     <!-- Your custom CSS -->
     <link rel="stylesheet" href="style.css">
-    
+
     <style>
         /* Ensures that the map div takes up full width and height */
         #map {
-            height: 100vh; /* Adjust map height as needed */
-            width: 100%; /* Takes up full width of the page */
-	    overflow: hidden; /* Prevent page scroll */
+            height: 100vh;
+            /* Adjust map height as needed */
+            width: 100%;
+            /* Takes up full width of the page */
+            overflow: hidden;
+            /* Prevent page scroll */
         }
 
         /* Adjust the title's margin and padding */
         h1 {
-            margin: 10px;  /* Adjust the outer space */
-            padding: 0;    /* Remove internal space */
-            text-align: center; /* Optional: Center-align the title */
+            margin: 10px;
+            /* Adjust the outer space */
+            padding: 0;
+            /* Remove internal space */
+            text-align: center;
+            /* Optional: Center-align the title */
         }
 
         /* Style for the legend */
         #legend {
             position: fixed;
-            top: 150px; /* Adjusted to give more space from the top */
+            top: 150px;
+            /* Adjusted to give more space from the top */
             left: 5%;
-            background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black background */
+            background-color: rgba(0, 0, 0, 0.6);
+            /* Semi-transparent black background */
             padding: 10px;
             border-radius: 10px;
             color: white;
@@ -55,7 +64,8 @@
             margin-bottom: 8px;
         }
 
-        .legend-item, .legend-line {
+        .legend-item,
+        .legend-line {
             width: 20px;
             height: 20px;
             display: inline-block;
@@ -68,126 +78,190 @@
             height: 5px;
         }
 
+        /* Style for the top coordinate axis */
+        #coord-top {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 56px;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        #coord-top img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: auto;
+        }
     </style>
 </head>
+
 <body>
 
-<h1>Pathfinders Interactive Map</h1>
+    <h1>Pathfinders Interactive Map</h1>
 
-<!-- Div for the map -->
-<div id="map"></div>
+    <!-- Div for the map -->
+    <div id="map"></div>
 
-<div id="legend">
+    <!-- Div for the top coordinate axis -->
+    <div id="coord-top">
+        <img src="coord-top.jpg" alt="Top Coordinate Axis">
+    </div>
+
+    <div id="legend">
         <h3>Map Legend</h3>
         <ul>
             <!-- Friendly Territory -->
             <li><span class="legend-item" style="background-color: blue; opacity: 0.3;"></span> Friendly Territory</li>
-            
+
             <!-- Unconfirmed Territory -->
-            <li><span class="legend-item" style="background-color: grey; opacity: 0.3;"></span> Unconfirmed Territory</li>
-            
+            <li><span class="legend-item" style="background-color: grey; opacity: 0.3;"></span> Unconfirmed Territory
+            </li>
+
             <!-- Hostile Territory -->
             <li><span class="legend-item" style="background-color: red; opacity: 0.3;"></span> Hostile Territory</li>
-            
+
             <!-- Objectives -->
             <li><span class="legend-item" style="background-color: blue; border-radius: 50%;"></span> Objective</li>
             <li><span class="legend-item" style="background-color: orange; border-radius: 50%;"></span> Objective</li>
             <li><span class="legend-item" style="background-color: red; border-radius: 50%;"></span> Objective</li>
-            
+
             <!-- Patrol Routes -->
             <li><span class="legend-line" style="background-color: blue;"></span> Combat Patrol Route</li>
             <li><span class="legend-line" style="background-color: orange;"></span> Stealth Patrol Route</li>
             <li><span class="legend-line" style="background-color: red;"></span> Enemy Patrol Route</li>
         </ul>
-</div>
+    </div>
 
-<!-- Link to Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <!-- Link to Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 
-<script>
-// Initialize the map
-var map = L.map('map', {
-    crs: L.CRS.Simple,
-    minZoom: -2,
-    maxZoom: 2
-});
+    <script>
+        // Initialize the map
+        var map = L.map('map', {
+            crs: L.CRS.Simple,
+            minZoom: -2,
+            maxZoom: 2
+        });
 
-// Define the map's image bounds
-var bounds = [[0, 0], [8000, 8000]];
+        // Define the map's image bounds
+        var bounds = [[0, 0], [8000, 8000]];
 
-// Add the map image
-var image = L.imageOverlay('everon-map.jpg', bounds).addTo(map);
-map.fitBounds(bounds);
-map.setMaxBounds(bounds);
-map.options.maxBoundsViscosity = 1.0;
+        // Add the map image
+        var image = L.imageOverlay('everon-map.jpg', bounds).addTo(map);
+        map.fitBounds(bounds);
+        map.setMaxBounds(bounds);
+        map.options.maxBoundsViscosity = 1.0;
 
-// Create the fixed ruler container
-var rulerContainer = document.createElement('div');
-rulerContainer.id = 'ruler-container';
-rulerContainer.style.position = 'fixed';
-rulerContainer.style.top = '0'; // Keep it fixed at the top of the viewport
-rulerContainer.style.left = '0'; // Will be dynamically adjusted
-rulerContainer.style.width = '100%'; // Full width of the viewport
-rulerContainer.style.height = '56px'; // Height of the ruler
-rulerContainer.style.pointerEvents = 'none'; // Makes it unclickable
-rulerContainer.style.zIndex = '9999'; // Ensures the ruler is on top
-rulerContainer.style.borderBottom = '2px solid #fff'; // Optional: Adds a white border to the bottom
+        // Create the fixed ruler container
+        var rulerContainer = document.createElement('div');
+        rulerContainer.id = 'ruler-container';
+        rulerContainer.style.position = 'fixed';
+        rulerContainer.style.top = '0'; // Keep it fixed at the top of the viewport
+        rulerContainer.style.left = '0'; // Will be dynamically adjusted
+        rulerContainer.style.width = '100%'; // Full width of the viewport
+        rulerContainer.style.height = '56px'; // Height of the ruler
+        rulerContainer.style.pointerEvents = 'none'; // Makes it unclickable
+        rulerContainer.style.zIndex = '9999'; // Ensures the ruler is on top
+        rulerContainer.style.borderBottom = '2px solid #fff'; // Optional: Adds a white border to the bottom
 
-// Create an image element for the ruler background
-var rulerImage = document.createElement('img');
-rulerImage.src = 'coord-top.jpg';
-rulerImage.style.position = 'absolute';
-rulerImage.style.top = '0';
-rulerImage.style.left = '0';
-rulerImage.style.width = '100%';
-rulerImage.style.height = 'auto'; // Maintain aspect ratio
-rulerContainer.appendChild(rulerImage);
+        // Create an image element for the ruler background
+        var rulerImage = document.createElement('img');
+        rulerImage.src = 'coord-top.jpg';
+        rulerImage.style.position = 'absolute';
+        rulerImage.style.top = '0';
+        rulerImage.style.left = '0';
+        rulerImage.style.width = '100%';
+        rulerImage.style.height = 'auto'; // Maintain aspect ratio
+        rulerContainer.appendChild(rulerImage);
 
-// Append it to the body
-document.body.appendChild(rulerContainer);
+        // Append it to the body
+        document.body.appendChild(rulerContainer);
 
-// Function to update the ruler width with map zoom
-function updateRulerWidth() {
-    var zoomLevel = map.getZoom();
-    var scaleFactor = Math.pow(2, zoomLevel); // Adjust zoom level scaling
-    var mapWidthAtZoom = 8000 * scaleFactor;  // Calculate the width of the map at the current zoom level
-    rulerImage.style.width = `${mapWidthAtZoom}px`; // Set the image width to match map width
-}
+        // Function to update the ruler width with map zoom
+        function updateRulerWidth () {
+            var zoomLevel = map.getZoom();
+            var scaleFactor = Math.pow(2, zoomLevel); // Adjust zoom level scaling
+            var mapWidthAtZoom = 8000 * scaleFactor;  // Calculate the width of the map at the current zoom level
+            rulerImage.style.width = `${mapWidthAtZoom}px`; // Set the image width to match map width
+        }
 
-// Function to update the ruler position and width
-function updateRulerPosition() {
-    // Get the zoom level and corresponding scale factor
-    const zoomLevel = map.getZoom();
-    const scaleFactor = Math.pow(2, zoomLevel);  // Zoom scale factor
+        // Function to update the ruler position and width
+        function updateRulerPosition () {
+            // Get the zoom level and corresponding scale factor
+            const zoomLevel = map.getZoom();
+            const scaleFactor = Math.pow(2, zoomLevel);  // Zoom scale factor
 
-    // Calculate the map's width at the current zoom level
-    const mapWidthAtZoom = 8000 * scaleFactor; // Base width of 8000px for the map image
+            // Calculate the map's width at the current zoom level
+            const mapWidthAtZoom = 8000 * scaleFactor; // Base width of 8000px for the map image
 
-    // Set the image width to match the map's current width
-    rulerImage.style.width = `${mapWidthAtZoom}px`; // Width adjusted for zoom
+            // Set the image width to match the map's current width
+            rulerImage.style.width = `${mapWidthAtZoom}px`; // Width adjusted for zoom
 
-    // Calculate the offset to keep the ruler horizontally centered
-    const offsetX = (mapWidthAtZoom - map.getSize().x) / 2;  // Centering based on zoom level
+            // Calculate the offset to keep the ruler horizontally centered
+            const offsetX = -map.getPixelBounds().min.x;  // Offset based on map position
 
-    // Align the ruler container to the center of the map's image, horizontally
-    rulerContainer.style.left = `${-offsetX}px`;
+            // Align the ruler container to the map's image, horizontally
+            rulerContainer.style.left = `${offsetX}px`;
 
-    // Keep the vertical position fixed at the top of the viewport
-    rulerContainer.style.top = '0';
-}
+            // Keep the vertical position fixed at the top of the viewport
+            rulerContainer.style.top = '0';
+        }
 
-// Attach events to update ruler position/width
-map.on('moveend', () => {
-    updateRulerPosition();
-});
+        // Attach events to update ruler position/width
+        map.on('moveend', () => {
+            updateRulerPosition();
+        });
 
-map.on('zoomend', () => {
-    updateRulerPosition();
-});
+        map.on('zoomend', () => {
+            updateRulerPosition();
+        });
 
-// Initialize ruler adjustments
-updateRulerPosition();
-</script>
+        // Initialize ruler adjustments
+        updateRulerPosition();
+
+        // Create the top coordinate axis container
+        var coordTopContainer = document.getElementById('coord-top');
+        var coordTopImage = coordTopContainer.querySelector('img');
+
+        // Function to update the top coordinate axis position and width
+        function updateCoordTopPosition () {
+            // Get the zoom level and corresponding scale factor
+            const zoomLevel = map.getZoom();
+            const scaleFactor = Math.pow(2, zoomLevel);  // Zoom scale factor
+
+            // Calculate the map's width at the current zoom level
+            const mapWidthAtZoom = 8000 * scaleFactor; // Base width of 8000px for the map image
+
+            // Set the image width to match the map's current width
+            coordTopImage.style.width = `${mapWidthAtZoom}px`; // Width adjusted for zoom
+
+            // Calculate the offset to keep the coordinate axis horizontally centered
+            const offsetX = -map.getPixelBounds().min.x;  // Offset based on map position
+
+            // Align the coordinate axis container to the map's image, horizontally
+            coordTopContainer.style.left = `${offsetX}px`;
+
+            // Keep the vertical position fixed at the top of the viewport
+            coordTopContainer.style.top = '0';
+        }
+
+        // Attach events to update coordinate axis position/width
+        map.on('moveend', () => {
+            updateCoordTopPosition();
+        });
+
+        map.on('zoomend', () => {
+            updateCoordTopPosition();
+        });
+
+        // Initialize coordinate axis adjustments
+        updateCoordTopPosition();
+    </script>
 
 </body>
+
 </html>
