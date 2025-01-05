@@ -14,8 +14,9 @@
     <style>
         /* Ensures that the map div takes up full width and height */
         #map {
-            height: 1200px; /* Adjust map height as needed */
+            height: 100vh; /* Adjust map height as needed */
             width: 100%; /* Takes up full width of the page */
+	    overflow: hidden; /* Prevent page scroll */
         }
 
         /* Adjust the title's margin and padding */
@@ -128,11 +129,19 @@ rulerContainer.style.top = '0'; // Keep it fixed at the top of the viewport
 rulerContainer.style.left = '0'; // Will be dynamically adjusted
 rulerContainer.style.width = '100%'; // Full width of the viewport
 rulerContainer.style.height = '56px'; // Height of the ruler
-rulerContainer.style.background = `url('coord-top.jpg') no-repeat center`;
-rulerContainer.style.backgroundSize = 'contain';
 rulerContainer.style.pointerEvents = 'none'; // Makes it unclickable
 rulerContainer.style.zIndex = '9999'; // Ensures the ruler is on top
 rulerContainer.style.borderBottom = '2px solid #fff'; // Optional: Adds a white border to the bottom
+
+// Create an image element for the ruler background
+var rulerImage = document.createElement('img');
+rulerImage.src = 'coord-top.jpg';
+rulerImage.style.position = 'absolute';
+rulerImage.style.top = '0';
+rulerImage.style.left = '0';
+rulerImage.style.width = '100%';
+rulerImage.style.height = 'auto'; // Maintain aspect ratio
+rulerContainer.appendChild(rulerImage);
 
 // Append it to the body
 document.body.appendChild(rulerContainer);
@@ -142,7 +151,7 @@ function updateRulerWidth() {
     var zoomLevel = map.getZoom();
     var scaleFactor = Math.pow(2, zoomLevel); // Adjust zoom level scaling
     var mapWidthAtZoom = 8000 * scaleFactor;  // Calculate the width of the map at the current zoom level
-    rulerContainer.style.backgroundSize = `${mapWidthAtZoom}px 56px`; // Set the ruler's width to match map width
+    rulerImage.style.width = `${mapWidthAtZoom}px`; // Set the image width to match map width
 }
 
 // Function to update the ruler position and width
@@ -154,8 +163,8 @@ function updateRulerPosition() {
     // Calculate the map's width at the current zoom level
     const mapWidthAtZoom = 8000 * scaleFactor; // Base width of 8000px for the map image
 
-    // Set the ruler's background size to match the map's current width
-    rulerContainer.style.backgroundSize = `${mapWidthAtZoom}px 56px`; // Width adjusted for zoom
+    // Set the image width to match the map's current width
+    rulerImage.style.width = `${mapWidthAtZoom}px`; // Width adjusted for zoom
 
     // Calculate the offset to keep the ruler horizontally centered
     const offsetX = (mapWidthAtZoom - map.getSize().x) / 2;  // Centering based on zoom level
@@ -178,7 +187,6 @@ map.on('zoomend', () => {
 
 // Initialize ruler adjustments
 updateRulerPosition();
-
 </script>
 
 </body>
