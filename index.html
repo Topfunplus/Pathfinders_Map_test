@@ -96,6 +96,28 @@
             width: 100%;
             height: auto;
         }
+
+        /* Style for the left coordinate axis */
+        #coord-left {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 56px;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        #coord-left img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: auto;
+            height: 100%;
+            transform: translateY(-8000px);
+            transform-origin: top left;
+            transition: transform 0.2s;
+        }
     </style>
 </head>
 
@@ -109,6 +131,11 @@
     <!-- Div for the top coordinate axis -->
     <div id="coord-top">
         <img src="coord-top.jpg" alt="Top Coordinate Axis">
+    </div>
+
+    <!-- Div for the left coordinate axis -->
+    <div id="coord-left">
+        <img src="coord-left.jpg" alt="Left Coordinate Axis">
     </div>
 
     <div id="legend">
@@ -260,6 +287,44 @@
 
         // Initialize coordinate axis adjustments
         updateCoordTopPosition();
+
+        // Create the left coordinate axis container
+        var coordLeftContainer = document.getElementById('coord-left');
+        var coordLeftImage = coordLeftContainer.querySelector('img');
+
+        // Function to update the left coordinate axis position and height
+        function updateCoordLeftPosition () {
+            // Get the zoom level and corresponding scale factor
+            const zoomLevel = map.getZoom();
+            const scaleFactor = Math.pow(2, zoomLevel);  // Zoom scale factor
+
+            // Calculate the map's height at the current zoom level
+            const mapHeightAtZoom = 8000 * scaleFactor; // Base height of 8000px for the map image
+
+            // Set the image height to match the map's current height
+            coordLeftImage.style.height = `${mapHeightAtZoom}px`; // Height adjusted for zoom
+
+            // Calculate the offset to keep the coordinate axis vertically centered
+            const offsetY = -map.getPixelBounds().min.y;  // Offset based on map position
+
+            // Align the coordinate axis container to the map's image, vertically
+            coordLeftContainer.style.top = `${offsetY}px`;
+
+            // Keep the horizontal position fixed at the left of the viewport
+            coordLeftContainer.style.left = '0';
+        }
+
+        // Attach events to update coordinate axis position/height
+        map.on('moveend', () => {
+            updateCoordLeftPosition();
+        });
+
+        map.on('zoomend', () => {
+            updateCoordLeftPosition();
+        });
+
+        // Initialize coordinate axis adjustments
+        updateCoordLeftPosition();
     </script>
 
 </body>
